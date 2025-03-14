@@ -6,38 +6,12 @@ products:
 date: 2025-03-14T01:00:00Z
 ---
 
-import { Render, TypeScriptExample } from "~/components";
+import { Render } from "~/components";
 
 In Cloudflare Workers, you can now attach an event listener to [`Request`](/workers/runtime-apis/request/) objects, using the [`signal` property](https://developer.mozilla.org/en-US/docs/Web/API/Request/signal), and perform tasks when the request to your Worker is canceled by the client.
 
 This allows you to perform cleanup tasks or write to logs before your Worker's invocation ends. For example, if you run the Worker below, and then abort the request from the client, a log will be written:
 
-<TypeScriptExample filename="index.ts">
-```ts
-import { WorkerEntrypoint } from 'cloudflare:workers'; 
-
-class Example extends WorkerEntrypoint {
-  async fetch(req: Request): Response {
-    req.signal.onabort = () => {
-      console.log('The request was aborted!');
-    };
-
-    const { readable, writable } = new IdentityTransformStream();
-    this.ctx.waitUntil(this.sendPing(writable));
-    return new Response(readable);
-  }
-
-  async sendPing(writable: WritableStream): void {
-     const writer = writable.getWriter();
-     const enc = new TextEncoder();
-
-     for (;;) {
-       // Send 'ping' every second to keep the connection alive
-       await writer.write(enc.encode('ping')); 
-       scheduler.wait(1000);
-     }
-  }
-}
-</TypeScriptExample>
+<Render file="request-signal-example" product="workers" />
 
 For more information see the [`Request` documentation](/workers/runtime-apis/request).

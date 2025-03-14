@@ -1,0 +1,43 @@
+---
+title: Handle request cancellation with Request.signal
+description: Workers can now add event listeners on Request.signal and perform tasks when the request is cancelled
+products:
+  - workers
+date: 2025-03-14T01:00:00Z
+---
+
+import { Render, TypeScriptExample } from "~/components";
+
+`Request` objects now have a `signal` property. You can now attach an event listener to the `signal` and perform tasks when the request to your Worker is canceled by the client.
+
+This lets you do things like clean up after the request or write to logs before your Worker is aborted.
+
+<TypeScriptExample filename="index.ts">
+```ts
+import { WorkerEntrypoint } from 'cloudflare:workers'; 
+
+class Example extends WorkerEntrypoint {
+  async fetch(req: Request): Response {
+    req.signal.onabort = () => {
+      console.log('The request was aborted!');
+    };
+
+    const { readable, writable } = new IdentityTransformStream();
+    this.ctx.waitUntil(this.sendPing(writable));
+    return new Response(readable);
+  }
+
+  async sendPing(writable: WritableStream): void {
+     const writer = writable.getWriter();
+     const enc = new TextEncoder();
+
+     for (;;) {
+       // Send 'ping' every second to keep the connection alive
+       await writer.write(enc.encode('ping')); 
+       scheduler.wait(1000);
+     }
+  }
+}
+</TypeScriptExample>
+
+For more information see the [`Request` documentation](/workers/runtime-apis/request).

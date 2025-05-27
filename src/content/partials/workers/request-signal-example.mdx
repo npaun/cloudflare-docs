@@ -9,6 +9,8 @@ import { TypeScriptExample } from "~/components";
 ```ts
 export default {
   async fetch(request, env, ctx): Promise<Response> {
+    // This sets up an event listener that will be called if the client disconnects from your
+    // worker.
     request.signal.addEventListener('abort', () => {
       console.log('The request was aborted!');
     });
